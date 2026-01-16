@@ -1,6 +1,6 @@
 # Flamingo
 
-![Python Version](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square)
+![Python Version](https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/status-prototype-orange?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)
@@ -9,7 +9,7 @@ A self-contained, extensible shell environment tailored for rapid Python utility
 
 Flamingo was built to solve a specific frustration: managing scattered Python utility scripts on Windows. Instead of polluting the system `PATH` with batch files or shim scripts, Flamingo provides a single, portable executable environment where utilities exist as native plugins.
 
-**Project Status:** Developed in <36 hours. Currently in alpha.
+**Project Status:** Developed in <36 hours. Currently just a side-project in "alpha".
 
 ## Core Philosophy
 

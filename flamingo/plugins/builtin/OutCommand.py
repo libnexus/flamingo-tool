@@ -21,7 +21,6 @@ class OutCommand(FlamingoCommand):
 
     def execute(self, kernel, args):
         parsed = self.arg_parser.parse(args)
-        # Greedy arg returns a list
         raw_text = " ".join(map(str, parsed['text']))
         is_raw = parsed['raw']
 

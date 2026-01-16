@@ -55,5 +55,5 @@ class LsCommand(FlamingoCommand):
         else:
             b = FmtBuilder()
             for f in files:
-                b.lavender(f) if os.path.isdir(f) else b.rosewater(f)
+                b.mauve(f, bold=True) if os.path.isdir(f) else b.lavender(f)
             kernel.out(b.join("  ").build())

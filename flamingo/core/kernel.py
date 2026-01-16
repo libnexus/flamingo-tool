@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shelve
+from dataclasses import dataclass
 from typing import Optional
 
 from prompt_toolkit import print_formatted_text, HTML
@@ -18,6 +19,14 @@ from flamingo.plugins.plugin_manager import PluginManager, FlamingoPluginLoader
 from collections import deque
 
 
+@dataclass(frozen=True, slots=True)
+class CommandHistory:
+    command: FlamingoCommand
+    name: str
+    args: list[str]
+    output: list[str | HTML]
+
+
 class FlamingoKernel:
     """
     The main object to run the flamingo environment. The main delegator and manager.
@@ -32,7 +41,9 @@ class FlamingoKernel:
         self.env_vars = self.system_vars.child("env")  # communal variable pool
         self.user_vars = self.system_vars.child("users")  # user pools
         self.plugin_manager = PluginManager(self)
-        self.out_buffer = deque(maxlen=50)
+
+        self.command_history: deque[CommandHistory] = deque(maxlen=100)
+        self.out_buffer: list[str | HTML] = []
 
         self.commands: dict[str, FlamingoCommand] = {}
         self.core_plugin = FlamingoPluginLoader(core, "builtin", "__int_flamingo")
@@ -107,7 +118,7 @@ class FlamingoKernel:
 
     def setup_user_variables(self, user: User):
         self.user_vars.children[user.name].values["theme"] = FlamingoVar(
-            value="latte",
+            value="frappe",
             validator=LiteralValidator(("latte", "frappe", "macchiato", "macchiato"))
         )
 
@@ -160,13 +171,20 @@ class FlamingoKernel:
             extra_commands.update(extra_plugins.build_command_list())
 
         if cmd_name in self.commands:
-            with ContextScope(f"Executing '{cmd_name}'"):
-                self.commands[cmd_name].execute(self, cmd_args)
+            command = self.commands[cmd_name]
         elif extra_commands and cmd_name in extra_commands:
-            with ContextScope(f"Executing '{cmd_name}'"):
-                extra_commands[cmd_name].execute(self, cmd_args)
+            command = extra_commands[cmd_name]
         else:
             self.out(f"Unknown command: {cmd_name}")
+            return
+
+        try:
+            self.out_buffer.clear()
+            with ContextScope(f"Executing '{cmd_name}'"):
+                command.execute(self, cmd_args)
+        finally:
+            self.command_history.append(CommandHistory(command, cmd_name, cmd_args, self.out_buffer[:]))
+            self.out_buffer.clear()
 
     def out(self, text: str | HTML):
         self.out_buffer.append(text)

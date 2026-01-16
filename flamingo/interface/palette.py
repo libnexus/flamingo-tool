@@ -39,4 +39,4 @@ CATPPUCCIN_DATA = {
 
 
 def get_palette(flavor: str):
-    return CATPPUCCIN_DATA.get(flavor.lower(), CATPPUCCIN_DATA['latte'])
+    return CATPPUCCIN_DATA.get(flavor.lower(), CATPPUCCIN_DATA['frappe'])

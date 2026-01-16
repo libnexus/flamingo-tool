@@ -26,20 +26,32 @@ class AdvancedShortcutsPlugin(FlamingoPlugin):
                 file.write("")
 
         for shortcuts, aliased in self.shortcuts:
-            if kernel.commands.get(aliased[0], None) is None:
+            target_command = kernel.commands.get(aliased[0], None)
+            if target_command is None:
                 self.log(f"{aliased[0]} doesn't exist. Skipping.", WARN)
                 continue
 
             @advanced_shortcuts.add_command
             class C(FlamingoCommand):
+                cmd: str = aliased[0]
+                args: tuple[str, ...] = aliased[1:]
+
                 def __init__(self):
                     super().__init__(shortcuts[0],
                                      f"Alias of: {" ".join(aliased)}",
                                      tuple(shortcuts[1:]),
                                      ArgParser())
+                    self.arg_parser.positionals = target_command.arg_parser.positionals[:]
+                    self.arg_parser.flags = target_command.arg_parser.flags.copy()
+
+                    for already in self.args:
+                        if already.startswith("--"):  # It's a flag
+                            continue
+                        else:
+                            self.arg_parser.positionals.pop(0)
 
                 def execute(self, _k: FlamingoKernel, args: list):
-                    kernel.execute_command(aliased[0], list(aliased[1:]) + args)
+                    kernel.execute_command(self.cmd, list(self.args) + args)
 
         return 0, 0
 
@@ -74,6 +86,7 @@ class CheckShortcutsCommand(FlamingoCommand):
                          ArgParser())
 
     def execute(self, kernel: FlamingoKernel, args: list) -> bool:
+        self.arg_parser.parse(args)
         b = FmtBuilder()
         b.surface2(f"Shortcuts ({len(advanced_shortcuts.shortcuts)})\n")
         b.text("   " + "-" * 70 + "\n")

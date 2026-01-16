@@ -58,25 +58,28 @@ class HelpCommand(FlamingoCommand):
             kernel.out(b.build())
             return
 
-        b = FmtBuilder()
+        kernel.out(build_commands_list(kernel.commands).build())
 
-        (b.surface2("Available Commands:\n")
-         .flamingo(f"   {"Name":<20}")
-         .peach(f"{"Signature":<50}")
-         .surface2(f"{"Description"}\n")
-         .text("   " + "-" * 90)
-         .raw("\n"))
 
-        for name in sorted(kernel.commands.keys()):
-            cmd = kernel.commands[name]
-            if name != cmd.name:
-                continue
+def build_commands_list(commands: dict[str, FlamingoCommand]):
+    b = FmtBuilder()
 
-            sig = cmd.arg_parser.get_signature()
-            desc = cmd.description
-            if len(desc) > 50:
-                desc = desc[:47] + "..."
+    (b.surface2("Available Commands:\n")
+     .flamingo(f"   {"Name":<20}")
+     .peach(f"{"Signature":<50}")
+     .surface2(f"{"Description"}\n")
+     .text("   " + "-" * 90)
+     .raw("\n"))
 
-            b.flamingo(f"   {name:<20}").peach(f"{sig:<50}").surface2(desc).raw("\n")
+    for name in sorted(commands.keys()):
+        cmd = commands[name]
+        if name != cmd.name:
+            continue
 
-        kernel.out(b.build())
+        sig = cmd.arg_parser.get_signature()
+        desc = cmd.description
+        if len(desc) > 50:
+            desc = desc[:47] + "..."
+
+        b.flamingo(f"   {name:<20}").peach(f"{sig:<50}").surface2(desc).raw("\n")
+    return b

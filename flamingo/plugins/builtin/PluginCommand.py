@@ -4,14 +4,15 @@ from flamingo.core.commands.parser import ArgParser
 from flamingo.core.debug.error import CommandExecutionError
 from flamingo.core.vars.var_validators_builtin import LiteralValidator
 from flamingo.interface.text import FmtBuilder
+from flamingo.plugins.builtin.HelpCommand import build_commands_list
 
 
 class PluginCommand(FlamingoCommand):
     def __init__(self):
         action_arg = FlamingoArg(
             name="action",
-            validator=LiteralValidator(("list", "load", "unload", "reload", "restart")),
-            completer=StaticCompleter(["list", "load", "unload", "reload", "restart"]),
+            validator=LiteralValidator(("list", "load", "unload", "reload", "restart", "commands")),
+            completer=StaticCompleter(["list", "load", "unload", "reload", "restart", "commands"]),
             default="list",
             help_text="Action to perform"
         )
@@ -66,6 +67,15 @@ class PluginCommand(FlamingoCommand):
                 kernel.plugin_manager.unload_plugin(plugin_loader)
             kernel.load_startup_plugins()
             kernel.commands = kernel.plugin_manager.build_command_list()
+        elif action == "commands":
+            if not target:
+                raise CommandExecutionError("Commands requires a plugin name.")
+
+            loader = kernel.plugin_manager.get_plugin_loader(target)
+            if loader:
+                kernel.out(build_commands_list(loader.plugin.commands).build())
+            else:
+                kernel.out(f"Plugin '{target}' not found.")
 
     @staticmethod
     def _list(kernel):

@@ -13,6 +13,33 @@ class TypeValidator(Validator):
             raise ValidationError(f"Expected {self._type.__name__}, got {type(value).__name__}")
 
 
+class IntValidator(Validator):
+    def __init__(self, minimum: int | None = None, maximum: int | None = None):
+        """
+        A simple validator class that checks if the given input can become an integer, and
+        then checks optional bounds
+
+        :param minimum: optional lowest value number
+        :param maximum: optional highest value number
+        """
+        self.minimum = minimum
+        self.maximum = maximum
+
+    def validate(self, value: object):
+        if not isinstance(value, str):
+            return False
+
+        if value.isnumeric():
+            val = int(value)
+
+            if self.minimum and val < self.minimum:
+                return False
+
+            if self.maximum and val > self.maximum:
+                return False
+
+        return False
+
 class ListValidator(Validator):
     def __init__(self, item_validator: Validator = None, min_length: int = None, max_length: int = None):
         """

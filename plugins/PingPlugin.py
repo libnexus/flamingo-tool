@@ -9,7 +9,7 @@ class PingPlugin(FlamingoPlugin):
     def load(self, kernel) -> tuple[int, int]:
         return 0, 0
 
-    def unload(self, kernel) -> [int, int]:
+    def unload(self, kernel) -> tuple[int, int]:
         return 0, 0
 
     def __init__(self):

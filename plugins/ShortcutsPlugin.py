@@ -18,12 +18,12 @@ class AdvancedShortcutsPlugin(FlamingoPlugin):
         self.shortcuts: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
 
     def load(self, kernel) -> tuple[int, int]:
-        if not os.path.exists(path + "/shortcuts.conf"):
-            with open(path + "/shortcuts.conf", "w+") as file:
-                file.write("")
-        else:
+        if os.path.exists(path + "/shortcuts.conf"):
             with open(path + "/shortcuts.conf", "r") as file:
                 self.read(file.read())
+        else:
+            with open(path + "/shortcuts.conf", "w+") as file:
+                file.write("")
 
         for shortcuts, aliased in self.shortcuts:
             if kernel.commands.get(aliased[0], None) is None:
@@ -43,7 +43,7 @@ class AdvancedShortcutsPlugin(FlamingoPlugin):
 
         return 0, 0
 
-    def unload(self, kernel) -> [int, int]:
+    def unload(self, kernel) -> tuple[int, int]:
         return 0, 0
 
     def read(self, source: str):

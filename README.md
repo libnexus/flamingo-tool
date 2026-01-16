@@ -68,7 +68,7 @@ pyinstaller --onefile flamingo/main.py --name flamingo
 
 Adding value to the environment is straightforward. Plugins inherit from `FlamingoCommand` and use declarative argument parsers.
 
-**Example: A custom 'Hello' command**
+**Example: A custom 'Hello / Ping' command**
 
 ```python
 import flamingo

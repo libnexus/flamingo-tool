@@ -38,13 +38,13 @@ class LastCommand(FlamingoCommand):
                         help_text="Previous n output (kernel stores up to 100)"))
 
     def execute(self, kernel: FlamingoKernel, args: list):
-        args = self.arg_parser.parse(args)
+        parsed = self.arg_parser.parse(args)
 
         if not kernel.command_history:
             kernel.out("No previous outputs.")
             return
 
-        n = args['n']
+        n = parsed['n']
         if n is None:
             n = len(kernel.command_history)
 
@@ -76,8 +76,8 @@ class HistoryCommand(FlamingoCommand):
                         help_text="Number of previous commands to display (kernel stores up to 100)"))
 
     def execute(self, kernel: FlamingoKernel, args: list) -> bool:
-        args = self.arg_parser.parse(args)
-        n = args['n']
+        parsed = self.arg_parser.parse(args)
+        n = parsed['n']
         if n is None:
             n = 10
         else:

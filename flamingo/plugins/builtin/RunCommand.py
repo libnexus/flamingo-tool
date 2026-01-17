@@ -27,19 +27,19 @@ class RunCommand(FlamingoCommand):
         self.arg_parser.add_flag("time", FlamingoArg(name="time", is_flag=True, help_text="Show execution time"))
 
     def execute(self, kernel, args):
-        args = self.arg_parser.parse(args)
-        greedy_args = args['args']
+        parsed = self.arg_parser.parse(args)
+        greedy_args = parsed['args']
         local_vars = {f"arg{i}": FlamingoVar(arg, validator=TypeValidator(str), readonly=True) for i, arg in
                       enumerate(greedy_args)} if greedy_args else {}
         local_vars["args"] = FlamingoVar(greedy_args or [], validator=ListValidator(TypeValidator(str)), readonly=True)
 
-        script_runner = FlamingoScriptRunner.from_file(kernel, args['script'], local_vars)
+        script_runner = FlamingoScriptRunner.from_file(kernel, parsed['script'], local_vars)
 
         if script_runner.script is None:
             # Exit silently because the error has been printed already
             return
 
-        if args["time"]:
+        if parsed["time"]:
             start = default_timer()
             script_runner.run()
             time = (default_timer() - start) * 1000  # convert to milliseconds

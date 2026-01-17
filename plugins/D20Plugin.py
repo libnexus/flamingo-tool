@@ -36,7 +36,7 @@ class DiceCore:
                 left, right = text.rsplit(op, 1)
                 return {"op": op, "left": DiceCore.parse(left), "right": DiceCore.parse(right)}
         
-        if "dropped" in text:
+        if "d" in text:
             match = re.match(r"^(\d*)d(\d+)(d|a)?$", text)
             if match:
                 cnt, sides, adv = match.groups()
@@ -278,5 +278,5 @@ class RollMacroCommand(FlamingoCommand):
 
         macros[parsed["name"]] = macro 
 
-        kernel.out(FmtBuilder.from_kernel(kernel).raw("Saved: [").mauve(dice_roll).raw("] to ").flamingo(f"%{args["name"]}").build())
+        kernel.out(FmtBuilder.from_kernel(kernel).raw("Saved: [").mauve(dice_roll).raw("] to ").flamingo(f"%{parsed["name"]}").build())
         

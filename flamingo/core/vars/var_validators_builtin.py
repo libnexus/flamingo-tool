@@ -1,4 +1,5 @@
 import os
+from re import Pattern
 
 from flamingo.core.debug.error import ValidationError
 from flamingo.core.vars.var_validator import Validator
@@ -87,10 +88,11 @@ class LiteralValidator(Validator):
 
 
 class PathValidator(Validator):
-    def __init__(self, must_exist=False, must_be_dir=False, must_be_file=False):
+    def __init__(self, must_exist=False, must_be_dir=False, must_be_file=False, re_filter: Pattern =None):
         self.must_exist = must_exist
         self.must_be_dir = must_be_dir
         self.must_be_file = must_be_file
+        self.re_filter = re_filter
 
     def validate(self, value):
         if not isinstance(value, str):
@@ -109,3 +111,6 @@ class PathValidator(Validator):
         if self.must_be_file and os.path.exists(check_path):
             if not os.path.isfile(check_path):
                 raise ValidationError(f"Path is not a file: {value}")
+            
+        if self.re_filter and not self.re_filter.match(check_path):
+            raise ValidationError("Path doesn't conform to pattern")

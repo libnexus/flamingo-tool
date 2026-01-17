@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from re import Pattern
+from typing import TYPE_CHECKING, Optional
 
 from flamingo.core.vars.var_validator import Validator
 
@@ -36,6 +37,12 @@ class UserCompleter(ArgCompleter):
 class PathCompleter(ArgCompleter):
     """Completes Filesystem Paths."""
 
+    def __init__(self, must_be_dir: Optional[bool] = None, must_be_file: Optional[bool] = None, re_filter: Optional[Pattern] = None):
+        super().__init__()
+        self.must_be_dir = must_be_dir
+        self.must_be_file = must_be_file
+        self.re_filter = re_filter
+
     def complete(self, kernel, prefix, full_args=None, arg_index=None):
         import os
         directory = os.path.dirname(prefix) or "."
@@ -43,6 +50,15 @@ class PathCompleter(ArgCompleter):
         try:
             ret = []
             for f in os.listdir(directory):
+                if self.must_be_dir and not os.path.isdir(f):
+                    continue 
+
+                if self.must_be_file and os.path.isdir(f):
+                    continue
+
+                if self.re_filter and not self.re_filter.match(f):
+                    continue
+
                 if f.startswith(base):
                     ret.append((f, "Dir" if os.path.isdir(f) else "File"))
             return ret

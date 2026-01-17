@@ -51,7 +51,7 @@ class LastCommand(FlamingoCommand):
 
         last_command = kernel.command_history[idx]
 
-        b = FmtBuilder().from_kernel(kernel).surface2("Command ").flamingo(last_command.command.name).peach(
+        b = FmtBuilder.from_kernel(kernel).surface2("Command ").flamingo(last_command.command.name).peach(
             " " + " ".join(last_command.args)).surface2(":\n").text(
             "-" * (len(f"Command {last_command.name}:")) + "\n\n").extend(last_command.output)
 
@@ -81,7 +81,7 @@ class HistoryCommand(FlamingoCommand):
         command_history = kernel.command_history.copy()
         command_history_len = len(command_history)
 
-        b = FmtBuilder()
+        b = FmtBuilder.from_kernel(kernel)
         b.surface2(f"Command History ({n if n < command_history_len else command_history_len})\n")
         b.overlay1(f"   {"Num":<7}")
         b.flamingo(f"{"Name":<25}")

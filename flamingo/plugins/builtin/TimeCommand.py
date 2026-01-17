@@ -22,7 +22,7 @@ class TimeCommand(FlamingoCommand):
         kernel.execute_command(target_cmd, target_args)
         end = time.perf_counter()
 
-        kernel.out(FmtBuilder().overlay1(f"Real: {format_duration(end - start)}").build())
+        kernel.out(FmtBuilder.from_kernel(kernel).overlay1(f"Real: {format_duration(end - start)}").build())
 
 
 def format_duration(seconds: float) -> str:

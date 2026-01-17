@@ -12,7 +12,7 @@ class CDCommand(FlamingoCommand):
         path_arg = FlamingoArg(
             name="path",
             validator=PathValidator(must_exist=True, must_be_dir=True),
-            completer=PathCompleter(),
+            completer=PathCompleter(must_be_dir=True),
             required=True,
             help_text="Target directory"
         )

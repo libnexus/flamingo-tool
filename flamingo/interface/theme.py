@@ -13,8 +13,6 @@ PALETTE = {
 
 FlamingoStyle = Style.from_dict({
     # Valid characters: a-z, 0-9, _, -, .
-    'prompt.symbol': f"{PALETTE['Flamingo']} bold",
-
     # Default text
     '': f"{PALETTE['Text']}",
 

@@ -4,7 +4,6 @@ from typing import Any, List, TYPE_CHECKING
 from flamingo.core.debug.error import FlamingoException
 from flamingo.core.vars.flamingo_var import FlamingoVar
 from flamingo.core.vars.var_table import VarTable
-from flamingo.interface.shell import command_shlex
 from flamingo.interface.text import FmtBuilder
 from flamingo.scripting.token.token_types import *
 from flamingo.scripting.parse.ast import (
@@ -46,7 +45,7 @@ class Interpreter:
         self.environment: List[VarTable] = [self.local_vars]
 
     def get_local(self, name: str) -> Any:
-        return self.get_var("{@script.%s}" % name)
+        return self.get_var("@script.%s" % name)
 
     def get_var(self, name: str) -> Any:
         var = self.kernel.resolve_var_path(name)
@@ -181,5 +180,5 @@ class Interpreter:
             self.local_vars.values.clear()  # Tidy up
 
     def handle_command(self, text: str):
-        cmd_name, cmd_args = command_shlex(text)
+        cmd_name, cmd_args = self.kernel.command_shlex(text)
         self.kernel.execute_command(cmd_name, cmd_args)

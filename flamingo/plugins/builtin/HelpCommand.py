@@ -30,7 +30,7 @@ class HelpCommand(FlamingoCommand):
 
             cmd = kernel.commands[target]
 
-            b = FmtBuilder()
+            b = FmtBuilder.from_kernel(kernel)
 
             (b.surface2("   Name: ")
              .flamingo(cmd.name).raw("\n")
@@ -58,12 +58,10 @@ class HelpCommand(FlamingoCommand):
             kernel.out(b.build())
             return
 
-        kernel.out(build_commands_list(kernel.commands).build())
+        kernel.out(build_commands_list(FmtBuilder.from_kernel(kernel), kernel.commands).build())
 
 
-def build_commands_list(commands: dict[str, FlamingoCommand]):
-    b = FmtBuilder()
-
+def build_commands_list(b: FmtBuilder, commands: dict[str, FlamingoCommand]):
     (b.surface2("Available Commands:\n")
      .flamingo(f"   {"Name":<20}")
      .peach(f"{"Signature":<50}")

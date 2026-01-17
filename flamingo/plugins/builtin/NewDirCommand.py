@@ -12,7 +12,7 @@ class NewDirCommand(FlamingoCommand):
         path_arg = FlamingoArg(
             name="path",
             validator=TypeValidator(str),
-            completer=PathCompleter(),
+            completer=PathCompleter(must_be_dir=True),
             required=True,
             help_text="Directory to create"
         )

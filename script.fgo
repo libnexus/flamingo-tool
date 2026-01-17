@@ -1,9 +1,9 @@
 out Hello World!
 out My name is {@script.arg0} and I am running the flamingo script with arguments like {@script.arg1}
-!for arg in {@script.args}:
-    !if {@script.arg} == "shaun":
+!for arg in args:
+    !if arg == "shaun":
         out "The author's name (Shaun) is in the arguments!"
-    !else !if {@script.arg} == "flamingo":
+    !else !if arg == "flamingo":
         out "The author's favourite animal (Flamingo) is in the arguments!"
     !else:
         out {@script.arg}

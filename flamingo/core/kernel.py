@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shelve
 from dataclasses import dataclass
+import shlex
 from typing import Optional
 
 from prompt_toolkit import print_formatted_text, HTML
@@ -14,6 +15,7 @@ from flamingo.core.user import User
 from flamingo.core.vars.flamingo_var import FlamingoVar, DynamicVar
 from flamingo.core.vars.var_table import VarTable
 from flamingo.core.vars.var_validators_builtin import TypeValidator, PathValidator, LiteralValidator, ListValidator
+from flamingo.interface.palette import CATPPUCCIN_DATA
 from flamingo.plugins.builtin import core
 from flamingo.plugins.plugin_manager import PluginManager, FlamingoPluginLoader
 from collections import deque
@@ -43,7 +45,7 @@ class FlamingoKernel:
         self.plugin_manager = PluginManager(self)
 
         self.command_history: deque[CommandHistory] = deque(maxlen=100)
-        self.out_buffer: list[str | HTML] = []
+        self.out_buffer: list[list[str | HTML]] = []
 
         self.commands: dict[str, FlamingoCommand] = {}
         self.core_plugin = FlamingoPluginLoader(core, "builtin", "__int_flamingo")
@@ -55,6 +57,9 @@ class FlamingoKernel:
             self.load_startup_plugins()
 
         self.commands.update(self.plugin_manager.build_command_list())
+
+        # self.save_state() -- Commented out while state serialization is not implemented
+
 
     def load_state(self):
         try:
@@ -79,7 +84,7 @@ class FlamingoKernel:
     def load_startup_plugins(self):
         try:
             paths_var = self.resolve_var_path("#plugins.paths")
-            paths = paths_var.value
+            paths = paths_var.get()
 
             if not paths:
                 return
@@ -119,7 +124,7 @@ class FlamingoKernel:
     def setup_user_variables(self, user: User):
         self.user_vars.children[user.name].values["theme"] = FlamingoVar(
             value="frappe",
-            validator=LiteralValidator(("latte", "frappe", "macchiato", "macchiato"))
+            validator=LiteralValidator(tuple(CATPPUCCIN_DATA.keys()))
         )
 
     def resolve_var_path(self, path: str) -> FlamingoVar:
@@ -178,14 +183,40 @@ class FlamingoKernel:
             self.out(f"Unknown command: {cmd_name}")
             return
 
+        self.out_buffer.append([])
+        command_history_obj = CommandHistory(command, cmd_name, cmd_args, [])
+        self.command_history.append(command_history_obj)
+
         try:
-            self.out_buffer.clear()
-            with ContextScope(f"Executing '{cmd_name}'"):
+            with ContextScope(f"Executing: {cmd_name}"):
                 command.execute(self, cmd_args)
         finally:
-            self.command_history.append(CommandHistory(command, cmd_name, cmd_args, self.out_buffer[:]))
-            self.out_buffer.clear()
+            command_out = self.out_buffer.pop()
+            command_history_obj.output.extend(command_out)
+
+    def execute_command_str(self, cmd: str,
+                            extra_commands: Optional[dict[str, FlamingoCommand]] = None,
+                            extra_plugins: Optional[PluginManager] = None) -> bool:
+        cmd_name, cmd_args = self.command_shlex(cmd)
+        if not cmd_name:
+            return False
+        self.execute_command(cmd_name, cmd_args, extra_commands, extra_plugins)
+        return True
+                
 
     def out(self, text: str | HTML):
-        self.out_buffer.append(text)
+        if self.out_buffer:
+            self.out_buffer[-1].append(text)
         print_formatted_text(text)
+
+    @staticmethod 
+    def command_shlex(command: str):
+        try:
+            parts = shlex.split(command)
+        except ValueError:
+            return None, None
+
+        cmd_name = parts[0]
+        args = parts[1:]
+
+        return cmd_name, args

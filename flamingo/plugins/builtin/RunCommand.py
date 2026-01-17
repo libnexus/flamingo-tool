@@ -8,6 +8,7 @@ from flamingo.core.vars.var_validators_builtin import PathValidator, TypeValidat
 from flamingo.interface.text import FmtBuilder
 from flamingo.scripting.interpreter import FlamingoScriptError
 from flamingo.scripting.run import FlamingoScriptRunner
+from re import compile 
 
 
 class RunCommand(FlamingoCommand):
@@ -17,7 +18,7 @@ class RunCommand(FlamingoCommand):
             FlamingoArg("script",
                         required=True,
                         validator=PathValidator(must_exist=True, must_be_file=True),
-                        completer=PathCompleter(),
+                        completer=PathCompleter(must_be_file=True, re_filter=compile(r".*?\.fgo")),
                         help_text="Path to script to run"
                         ))
         self.arg_parser.add_arg(

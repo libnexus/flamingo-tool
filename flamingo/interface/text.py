@@ -45,7 +45,7 @@ class FmtBuilder:
         if style_str:
             style = f'<style {style_str}>{safe_text}</style>'
             if bold:
-                style = f'<b>{style}</b>'
+                style = f'<strong>{style}</strong>'
             if italic:
                 style = f'<i>{style}</i>'
             if underline:

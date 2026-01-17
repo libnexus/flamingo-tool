@@ -95,8 +95,8 @@ class PluginManager:
             found_plugins = []
             for attr_name, attr in module.__dict__.items():
                 if isinstance(attr, FlamingoPlugin):
-                    if plug := self.get_plugin_loader(attr.name):
-                        logger.warning(f"Plugin '{attr.name}' already loaded as {plug.name} {plug.version}. Skipping.")
+                    if plug_ld := self.get_plugin_loader(attr.name):
+                        logger.warning(f"Plugin '{attr.name}' already loaded as {plug_ld.plugin.name} {plug_ld.plugin.version}. Skipping.")
                         continue
 
                     found_plugins.append(attr)

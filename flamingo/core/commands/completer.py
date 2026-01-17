@@ -60,7 +60,7 @@ class PathCompleter(ArgCompleter):
                     continue
 
                 if f.startswith(base):
-                    ret.append((f, "Dir" if os.path.isdir(f) else "File"))
+                    ret.append((f, "Dir" if os.path.isdir(f) else "Flamingo Script" if f.endswith(".fgo") else "file"))
             return ret
         except (NotADirectoryError, FileNotFoundError):
             return []

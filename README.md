@@ -1,9 +1,8 @@
 # Flamingo
 
-![Python Version](https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square)
+![Python Version](https://img.shields.io/badge/python-3.14.2%2B-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/status-prototype-orange?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
-![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)
 
 A self-contained, extensible shell environment tailored for rapid Python utility management.
 

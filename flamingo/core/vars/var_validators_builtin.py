@@ -1,4 +1,5 @@
 import os
+from re import Pattern
 
 from flamingo.core.debug.error import ValidationError
 from flamingo.core.vars.var_validator import Validator
@@ -12,6 +13,33 @@ class TypeValidator(Validator):
         if not isinstance(value, self._type):
             raise ValidationError(f"Expected {self._type.__name__}, got {type(value).__name__}")
 
+
+class IntValidator(Validator):
+    def __init__(self, minimum: int | None = None, maximum: int | None = None):
+        """
+        A simple validator class that checks if the given input can become an integer, and
+        then checks optional bounds
+
+        :param minimum: optional lowest value number
+        :param maximum: optional highest value number
+        """
+        self.minimum = minimum
+        self.maximum = maximum
+
+    def validate(self, value: object):
+        if not isinstance(value, str):
+            return False
+
+        if value.isnumeric():
+            val = int(value)
+
+            if self.minimum and val < self.minimum:
+                return False
+
+            if self.maximum and val > self.maximum:
+                return False
+
+        return False
 
 class ListValidator(Validator):
     def __init__(self, item_validator: Validator = None, min_length: int = None, max_length: int = None):
@@ -60,10 +88,11 @@ class LiteralValidator(Validator):
 
 
 class PathValidator(Validator):
-    def __init__(self, must_exist=False, must_be_dir=False, must_be_file=False):
+    def __init__(self, must_exist=False, must_be_dir=False, must_be_file=False, re_filter: Pattern =None):
         self.must_exist = must_exist
         self.must_be_dir = must_be_dir
         self.must_be_file = must_be_file
+        self.re_filter = re_filter
 
     def validate(self, value):
         if not isinstance(value, str):
@@ -82,3 +111,6 @@ class PathValidator(Validator):
         if self.must_be_file and os.path.exists(check_path):
             if not os.path.isfile(check_path):
                 raise ValidationError(f"Path is not a file: {value}")
+            
+        if self.re_filter and not self.re_filter.match(check_path):
+            raise ValidationError("Path doesn't conform to pattern")

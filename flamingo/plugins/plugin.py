@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Type, TYPE_CHECKING
+from typing import Type, TYPE_CHECKING, Tuple
 
 from flamingo.core.debug.logging import logger
 
@@ -35,7 +35,7 @@ class FlamingoPlugin(ABC):
         """
 
     @abstractmethod
-    def unload(self, kernel: FlamingoKernel) -> [int, int]:
+    def unload(self, kernel: FlamingoKernel) -> tuple[int, int]:
         """
         Called before the plugin is unloaded (file unload - removed from plugin manager).
 

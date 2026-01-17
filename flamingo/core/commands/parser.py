@@ -29,6 +29,15 @@ class ArgParser:
         return self
 
     def parse(self, raw_args: list[str]) -> dict:
+        """
+        Parses the arguments based on the internal specification
+
+        Note: This does not do automatic type conversions. Validators provide checking before getting
+        to execution which allows for safe casting, but casting has to be manual.
+
+        :param raw_args: The user's arguments, pre-shlexed / split etc.
+        :return: a dictionary of values put into the names based on built arg spec
+        """
         result = {}
 
         for arg in self.positionals:

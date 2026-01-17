@@ -8,7 +8,7 @@ from flamingo.interface.palette import get_palette
 
 
 class FmtBuilder:
-    def __init__(self, theme_flavor: str = "latte"):
+    def __init__(self, theme_flavor: str = "frappe"):
         """
         :param theme_flavor: 'latte', 'frappe', 'macchiato', 'mocha'
         """
@@ -18,7 +18,7 @@ class FmtBuilder:
     @classmethod
     def from_kernel(cls, kernel):
         """Factory: Grabs the theme from the kernel automatically."""
-        flavor = "latte"
+        flavor = "frappe"
         try:
             val = kernel.resolve_var_path("@theme")
             flavor = str(val.value)
@@ -45,7 +45,7 @@ class FmtBuilder:
         if style_str:
             style = f'<style {style_str}>{safe_text}</style>'
             if bold:
-                style = f'<b>{style}</b>'
+                style = f'<strong>{style}</strong>'
             if italic:
                 style = f'<i>{style}</i>'
             if underline:
@@ -148,4 +148,4 @@ class FmtBuilder:
         return self
 
     def build(self):
-        return HTML("".join(self.segments))
+        return HTML("".join(map(lambda s: s.value if isinstance(s, HTML) else s, self.segments)))

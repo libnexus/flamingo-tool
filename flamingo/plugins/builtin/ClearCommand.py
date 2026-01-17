@@ -9,4 +9,5 @@ class ClearCommand(FlamingoCommand):
         super().__init__("clear", "Clear the terminal screen.", ("cls",), ArgParser())
 
     def execute(self, kernel, args):
+        self.arg_parser.parse(args)
         os.system('cls' if os.name == 'nt' else 'clear')

@@ -5,7 +5,6 @@ from flamingo.core.commands.command import FlamingoCommand
 from flamingo.core.commands.parser import ArgParser
 from flamingo.core.debug.error import CommandExecutionError
 from flamingo.core.kernel import FlamingoKernel
-from flamingo.interface.shell import command_shlex
 from flamingo.interface.text import FmtBuilder
 from flamingo.plugins.plugin import FlamingoPlugin
 
@@ -14,36 +13,52 @@ path = os.path.dirname(os.path.abspath(__file__))
 
 class AdvancedShortcutsPlugin(FlamingoPlugin):
     def __init__(self):
-        super().__init__("shortcuts", "shaun", "a simple plugin to add easily configurable, advanced shortcuts", "0.1")
+        super().__init__("shortcuts", "shaun", "A simple plugin to add easily configurable, advanced shortcuts", "0.1")
         self.shortcuts: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
 
     def load(self, kernel) -> tuple[int, int]:
-        if not os.path.exists(path + "/shortcuts.conf"):
-            with open(path + "/shortcuts.conf", "w+") as file:
-                file.write("")
-        else:
+        if os.path.exists(path + "/shortcuts.conf"):
             with open(path + "/shortcuts.conf", "r") as file:
                 self.read(file.read())
+        else:
+            with open(path + "/shortcuts.conf", "w+") as file:
+                file.write("")
+
+        warnings = 0
 
         for shortcuts, aliased in self.shortcuts:
-            if kernel.commands.get(aliased[0], None) is None:
+            target_command = kernel.commands.get(aliased[0], None)
+            if target_command is None:
+                warnings += 1
                 self.log(f"{aliased[0]} doesn't exist. Skipping.", WARN)
                 continue
 
             @advanced_shortcuts.add_command
             class C(FlamingoCommand):
+                cmd: str = aliased[0]
+                args: tuple[str, ...] = aliased[1:]
+
                 def __init__(self):
                     super().__init__(shortcuts[0],
                                      f"Alias of: {" ".join(aliased)}",
                                      tuple(shortcuts[1:]),
                                      ArgParser())
+                    self.arg_parser.positionals = target_command.arg_parser.positionals[:]
+                    self.arg_parser.flags = target_command.arg_parser.flags.copy()
 
-                def execute(self, _k: FlamingoKernel, args: list):
-                    kernel.execute_command(aliased[0], list(aliased[1:]) + args)
+                    for already in self.args:
+                        if already.startswith("--"):  # It's a flag
+                            continue
+                        else:
+                            self.arg_parser.positionals.pop(0)
 
-        return 0, 0
+                def execute(self, kernel, args):
+                    kernel.execute_command(self.cmd, list(self.args) + args)
 
-    def unload(self, kernel) -> [int, int]:
+        return warnings, 0
+
+    def unload(self, kernel) -> tuple[int, int]:
+        # Commands owned by the plugin are cleaned up by kernel
         return 0, 0
 
     def read(self, source: str):
@@ -60,7 +75,7 @@ class AdvancedShortcutsPlugin(FlamingoPlugin):
                 raise CommandExecutionError("Aliases must have at least one alias and one command")
 
             _cmd_shortcuts = map(lambda s: s.lstrip().rstrip(), _shortcuts[:-1])
-            _cmd, _args = command_shlex(_shortcuts[-1])
+            _cmd, _args = FlamingoKernel.command_shlex(_shortcuts[-1])
             self.shortcuts.append((tuple(_cmd_shortcuts), (_cmd, *_args)))
 
 
@@ -74,7 +89,8 @@ class CheckShortcutsCommand(FlamingoCommand):
                          ArgParser())
 
     def execute(self, kernel: FlamingoKernel, args: list) -> bool:
-        b = FmtBuilder()
+        self.arg_parser.parse(args)
+        b = FmtBuilder.from_kernel(kernel)
         b.surface2(f"Shortcuts ({len(advanced_shortcuts.shortcuts)})\n")
         b.text("   " + "-" * 70 + "\n")
         for shortcuts, command in advanced_shortcuts.shortcuts:

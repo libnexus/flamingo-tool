@@ -10,6 +10,7 @@ from prompt_toolkit.shortcuts import CompleteStyle
 
 from flamingo.core.debug.error import ContextScope, FlamingoExit, FlamingoException
 from flamingo.core.debug.logging import logger
+from flamingo.interface.text import FmtBuilder
 from flamingo.interface.theme import FlamingoStyle
 
 if TYPE_CHECKING:
@@ -172,7 +173,7 @@ class FlamingoCompleter(Completer):
                                  display_meta=arg.help_text)
 
 
-def run_shell(kernel: FlamingoKernel):
+def run_shell(kernel: FlamingoKernel, init_command: list[str] | None = None):
     session = PromptSession(
         completer=FlamingoCompleter(kernel),
         style=FlamingoStyle,
@@ -180,22 +181,21 @@ def run_shell(kernel: FlamingoKernel):
         complete_while_typing=True
     )
 
+    if init_command is not None and len(init_command) > 0:
+        kernel.execute_command(init_command[0], init_command[1:])
+
     while True:
         try:
             prompt_str = kernel.resolve_var_path_fmt("#shell.prompt")
 
-            text = session.prompt(HTML(f"<prompt.symbol>{prompt_str}</prompt.symbol>"))
+            text = session.prompt(FmtBuilder.from_kernel(kernel).flamingo(prompt_str).build())
             if not text.strip():
                 continue
 
             ContextScope.GLOBAL_CONTEXT.clear()
             ContextScope.GLOBAL_CONTEXT.append(f"Input: {text}")
 
-            cmd_name, args = command_shlex(text)
-            if not cmd_name:
-                continue
-
-            kernel.execute_command(cmd_name, args)
+            kernel.execute_command_str(text)
 
         except KeyboardInterrupt:
             continue
@@ -204,17 +204,11 @@ def run_shell(kernel: FlamingoKernel):
         except FlamingoExit:
             break
         except Exception as e:
-            kernel.out(f"[!] Error: {e}")
-            raise e
-
-
-def command_shlex(command: str):
-    try:
-        parts = shlex.split(command)
-    except ValueError:
-        return None, None
-
-    cmd_name = parts[0]
-    args = parts[1:]
-
-    return cmd_name, args
+            b = FmtBuilder.from_kernel(kernel).red(f"Python Error ({e.__class__.__name__}):\n   {str(e)}")            
+            
+            if ContextScope.GLOBAL_CONTEXT:
+                b.red("\nContext:")
+                for ctx in ContextScope.GLOBAL_CONTEXT:
+                    b.red(f"\n   {ctx}")
+            
+            kernel.out(b.build())

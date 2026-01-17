@@ -10,7 +10,7 @@ class TouchCommand(FlamingoCommand):
     def __init__(self):
         path_arg = FlamingoArg(
             name="path",
-            completer=PathCompleter(),
+            completer=PathCompleter(must_be_file=True),
             required=True,
             help_text="File to create/update"
         )

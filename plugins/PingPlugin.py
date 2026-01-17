@@ -9,7 +9,7 @@ class PingPlugin(FlamingoPlugin):
     def load(self, kernel) -> tuple[int, int]:
         return 0, 0
 
-    def unload(self, kernel) -> [int, int]:
+    def unload(self, kernel) -> tuple[int, int]:
         return 0, 0
 
     def __init__(self):
@@ -25,5 +25,5 @@ class MyCommand(FlamingoCommand):
         super().__init__("ping", "Ping", (), flamingo.core.commands.parser.ArgParser())
 
     def execute(self, kernel: FlamingoKernel, args: list):
-        _ = self.arg_parser.parse(args)
+        self.arg_parser.parse(args)
         kernel.out(FmtBuilder.from_kernel(kernel).surface2("pong!").build())

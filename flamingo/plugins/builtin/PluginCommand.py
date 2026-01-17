@@ -4,14 +4,15 @@ from flamingo.core.commands.parser import ArgParser
 from flamingo.core.debug.error import CommandExecutionError
 from flamingo.core.vars.var_validators_builtin import LiteralValidator
 from flamingo.interface.text import FmtBuilder
+from flamingo.plugins.builtin.HelpCommand import build_commands_list
 
 
 class PluginCommand(FlamingoCommand):
     def __init__(self):
         action_arg = FlamingoArg(
             name="action",
-            validator=LiteralValidator(("list", "load", "unload", "reload", "restart")),
-            completer=StaticCompleter(["list", "load", "unload", "reload", "restart"]),
+            validator=LiteralValidator(("list", "load", "unload", "reload", "restart", "info")),
+            completer=StaticCompleter(["list", "load", "unload", "reload", "restart", "info"]),
             default="list",
             help_text="Action to perform"
         )
@@ -66,6 +67,21 @@ class PluginCommand(FlamingoCommand):
                 kernel.plugin_manager.unload_plugin(plugin_loader)
             kernel.load_startup_plugins()
             kernel.commands = kernel.plugin_manager.build_command_list()
+        elif action == "info":
+            if not target:
+                raise CommandExecutionError("Commands requires a plugin name.")
+
+            loader = kernel.plugin_manager.get_plugin_loader(target)
+            if loader:
+                b = FmtBuilder.from_kernel(kernel)
+                b.surface2("Plugin: ").flamingo(loader.plugin.name).surface2(f" v{loader.plugin.version}").subtext0(
+                    f" ({loader.path})").surface2(":\n")
+                b.subtext0(f"   {loader.plugin.description}\n\n")
+                b.extend(build_commands_list(FmtBuilder.from_kernel(kernel), loader.plugin.commands).segments)
+
+                kernel.out(b.build())
+            else:
+                kernel.out(f"Plugin '{target}' not found.")
 
     @staticmethod
     def _list(kernel):
@@ -104,7 +120,7 @@ class PluginCommand(FlamingoCommand):
             if path not in current_paths:
                 current_paths.append(path)
                 kernel.save_state()  # Persist immediate
-                kernel.out(FmtBuilder().green(" [Persisted]").build())
+                kernel.out(FmtBuilder.from_kernel(kernel).green(" [Persisted]").build())
 
     @staticmethod
     def _unload(kernel, name, save):
@@ -119,7 +135,7 @@ class PluginCommand(FlamingoCommand):
             if save:
                 paths_var = kernel.resolve_var_path("#plugins.paths")
                 # TODO: Removing a plugin by name, but the list stores paths. Cheeky. Use warning
-                kernel.out(FmtBuilder().yellow(
+                kernel.out(FmtBuilder.from_kernel(kernel).yellow(
                     "Warning: --save on unload not fully implemented (path resolution needed).").build())
         else:
             kernel.out(f"Plugin '{name}' not found.")

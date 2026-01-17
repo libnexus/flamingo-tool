@@ -68,7 +68,7 @@ class FlamingoVar:
 
     def set(self, new_value: object):
         if not isinstance(new_value, (str, int, float, bool, list, tuple, dict, FlamingoWrapper)):
-            raise FlamingoException("Custom values must implement FlamingoWrapper interface")
+            raise FlamingoException(f"Custom values ({new_value.__class__.__name__}) must implement FlamingoWrapper interface")
 
         if self.readonly:
             logger.warning(f"Write rejected: Variable is read-only.")

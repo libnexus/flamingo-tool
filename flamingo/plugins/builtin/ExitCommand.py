@@ -8,4 +8,5 @@ class ExitCommand(FlamingoCommand):
         super().__init__("exit", "Exits the shell.", ("quit",), ArgParser())
 
     def execute(self, kernel, args):
+        self.arg_parser.parse(args)
         raise FlamingoExit

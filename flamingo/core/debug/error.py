@@ -13,7 +13,8 @@ class ContextScope:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.GLOBAL_CONTEXT.pop()
+        if exc_type is None:
+            self.GLOBAL_CONTEXT.pop()
         return False
 
 

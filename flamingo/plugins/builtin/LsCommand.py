@@ -13,7 +13,7 @@ class LsCommand(FlamingoCommand):
         path_arg = FlamingoArg(
             name="path",
             validator=TypeValidator(str),
-            completer=PathCompleter(),
+            completer=PathCompleter(must_be_dir=True),
             default=None,
             required=False,
             help_text="Directory to list"
@@ -45,6 +45,9 @@ class LsCommand(FlamingoCommand):
 
         if not os.path.exists(target):
             raise CommandExecutionError(f"Path not found: {target}")
+        
+        if not os.path.isdir(target):
+            raise CommandExecutionError(f"Path leads to file: {target}")
 
         files = os.listdir(target)
         if parsed['long']:
@@ -53,7 +56,7 @@ class LsCommand(FlamingoCommand):
             for f in files:
                 kernel.out(f"- {f}")
         else:
-            b = FmtBuilder()
+            b = FmtBuilder.from_kernel(kernel)
             for f in files:
-                b.lavender(f) if os.path.isdir(f) else b.rosewater(f)
+                b.mauve(f, bold=True) if os.path.isdir(f) else b.lavender(f)
             kernel.out(b.join("  ").build())

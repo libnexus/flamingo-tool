@@ -2,7 +2,7 @@ from flamingo.core.commands.command import FlamingoCommand
 from flamingo.core.commands.completer import FlamingoArg
 from flamingo.core.commands.parser import ArgParser
 from flamingo.core.debug.logging import get_recent_logs
-from flamingo.core.vars.var_validators_builtin import TypeValidator
+from flamingo.core.vars.var_validators_builtin import TypeValidator, IntValidator
 from flamingo.interface.text import FmtBuilder
 
 
@@ -10,7 +10,7 @@ class LogCommand(FlamingoCommand):
     def __init__(self):
         count_arg = FlamingoArg(
             name="count",
-            validator=TypeValidator(int),
+            validator=IntValidator(minimum=1),
             default=20,
             help_text="Number of lines to show"
         )
@@ -21,7 +21,7 @@ class LogCommand(FlamingoCommand):
 
     def execute(self, kernel, args):
         parsed = self.arg_parser.parse(args)
-        count = parsed['count']
+        count = int(parsed['count'])
 
         raw_lines = get_recent_logs(count)
 
